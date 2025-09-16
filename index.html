@@ -2,16 +2,77 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Température en Temps Réel</title>
+  <title>🌡️ Température en direct</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #fff);
+      text-align: center;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      font-size: 2em;
+      color: #00796b;
+    }
+
+    #temp {
+      font-size: 3em;
+      font-weight: bold;
+      color: #d32f2f;
+      margin: 20px 0;
+    }
+
+    iframe {
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 0.9em;
+      color: #555;
+    }
+  </style>
 </head>
 <body>
-  <h1>🌡️ Température DS18B20 (Canal 3077021)</h1>
+  <h1>🌡️ Température du capteur DS18B20</h1>
+  <p id="temp">Chargement...</p>
 
-  <!-- Intégration du graphique ThingSpeak -->
-  <iframe width="600" height="370" style="border: 1px solid #cccccc;"
-    src="https://thingspeak.com/channels/3077021/charts/1?bgcolor=%23ffffff&color=%23d62020&dynamic=true&type=line&title=Temp%C3%A9rature+DS18B20+en+temps+r%C3%A9el">
+  <!-- Widget graphique ThingSpeak -->
+  <iframe width="600" height="370"
+    src="https://thingspeak.com/channels/3077021/charts/1?bgcolor=%23ffffff&color=%23d62020&dynamic=true&type=line&title=Graphique+Temp%C3%A9rature">
   </iframe>
 
-  <p style="font-style: italic;">Le graphique se met à jour automatiquement toutes les 15 secondes.</p>
+  <footer>
+    Mis à jour automatiquement via Arduino + Python + ThingSpeak.<br>
+    Projet personnel – dernière mise à jour : <span id="date"></span>
+  </footer>
+
+  <script>
+    // 🔄 Récupération de la température en temps réel depuis ThingSpeak
+    function updateTemperature() {
+      fetch('https://api.thingspeak.com/channels/3077021/fields/1/last.json')
+        .then(response => response.json())
+        .then(data => {
+          const temp = parseFloat(data.field1).toFixed(2);
+          document.getElementById('temp').innerText = temp + " °C";
+        })
+        .catch(error => {
+          document.getElementById('temp').innerText = "Erreur de lecture 😕";
+          console.error(error);
+        });
+    }
+
+    // 🔁 Mise à jour toutes les 15 secondes
+    updateTemperature();
+    setInterval(updateTemperature, 15000);
+
+    // 🕒 Affichage de la date de mise à jour
+    document.getElementById('date').innerText = new Date().toLocaleDateString();
+  </script>
 </body>
 </html>
